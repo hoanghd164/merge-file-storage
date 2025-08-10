@@ -107,7 +107,7 @@ EOF
   systemctl is-active merge_file_storage.service
 
   echo "📜 Service log:"
-  journalctl -u merge_file_storage.service -n 100 --no-pager
+  journalctl -u merge_file_storage.service -n 100 --no-pager -f
 }
 
 function renew() {
@@ -152,7 +152,7 @@ function renew() {
   systemctl is-active merge_file_storage.service
 
   echo "📜 Service log:"
-  journalctl -u merge_file_storage.service -n 100 --no-pager
+  journalctl -u merge_file_storage.service -n 100 --no-pager -f
 }
 
 function destroy() {
@@ -172,6 +172,15 @@ function destroy() {
 
   echo "✅ merge_file_storage deleted successfully"
 }
+
+echo "==================================="
+echo " Merge File Storage Deployment Tool"
+echo "==================================="
+echo "1. Deploy"
+echo "2. Renew"
+echo "3. Destroy"
+echo "6. Exit"
+read -p "👉 Menu select: " choice
 
 case $choice in
     1) echo ""; deploy ;;
