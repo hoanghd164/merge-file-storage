@@ -1,0 +1,537 @@
+{
+  "hashes": [
+    {
+      "hash": "67f355b9666889dfd5ba84f0eee854db608e7062a08a58ee6df2b54cb33ea9fb",
+      "duplicates": [
+        {
+          "path": "ssacl.new.sh",
+          "status": "copied",
+          "source_alias": "data",
+          "origin_root": "/home/data",
+          "src_remote": "/home/data/ssacl.new.sh",
+          "dest": "ssacl.new.sh",
+          "bytes": 4792
+        }
+      ]
+    },
+    {
+      "hash": "97f07a1d12ed96794e6ce683a9e6eaf7d9266bd15fc8384fe08a779fe12be268",
+      "duplicates": [
+        {
+          "path": "vz-iso-7.5.3-391.iso",
+          "status": "copied",
+          "source_alias": "data",
+          "origin_root": "/home/data",
+          "src_remote": "/home/data/vz-iso-7.5.3-391.iso",
+          "dest": "vz-iso-7.5.3-391.iso",
+          "bytes": 2376044544
+        }
+      ]
+    },
+    {
+      "hash": "27be4c3c6c5bb86ddde4597fb21ed62be4cd926cd4ae8b821fca50917f05839a",
+      "duplicates": [
+        {
+          "path": "ceph_osd_summary.py",
+          "status": "copied",
+          "source_alias": "data",
+          "origin_root": "/home/data",
+          "src_remote": "/home/data/ceph_osd_summary.py",
+          "dest": "ceph_osd_summary.py",
+          "bytes": 2395
+        }
+      ]
+    },
+    {
+      "hash": "371611c3fda0e2fed73a784e70aec9a4546cd5065eeb8de7765d74650aefd0a7",
+      "duplicates": [
+        {
+          "path": "nginx/ssl_checker.sh",
+          "status": "copied",
+          "source_alias": "data",
+          "origin_root": "/home/data",
+          "src_remote": "/home/data/nginx/ssl_checker.sh",
+          "dest": "nginx/ssl_checker.sh",
+          "bytes": 1821
+        }
+      ]
+    },
+    {
+      "hash": "6c647b1ab4318e8c560d5748f908e108be654bad1e165f7cf4f3c1fc43995934",
+      "duplicates": [
+        {
+          "path": "iso/ubuntu-18_04_6-live-server-amd64.iso",
+          "status": "copied",
+          "source_alias": "data",
+          "origin_root": "/home/data",
+          "src_remote": "/home/data/iso/ubuntu-18_04_6-live-server-amd64.iso",
+          "dest": "iso/ubuntu-18_04_6-live-server-amd64.iso",
+          "bytes": 1016070144
+        }
+      ]
+    },
+    {
+      "hash": "7e8b735a0c3e4aa3216a23017eaf1e25789f7a3c7e5a8c6c6b3a6ebb6b7ef223",
+      "duplicates": [
+        {
+          "path": "audit_vstor-hcm04_20250718_150347.log",
+          "status": "copied",
+          "source_alias": "data",
+          "origin_root": "/home/data",
+          "src_remote": "/home/data/audit_vstor-hcm04_20250718_150347.log",
+          "dest": "audit_vstor-hcm04_20250718_150347.log",
+          "bytes": 7817
+        }
+      ]
+    },
+    {
+      "hash": "32bc61c661bd759bd8070e53601370ba6b669262f479b02b10223884ec71e4b2",
+      "duplicates": [
+        {
+          "path": "find_slowrequest.py",
+          "status": "copied",
+          "source_alias": "data",
+          "origin_root": "/home/data",
+          "src_remote": "/home/data/find_slowrequest.py",
+          "dest": "find_slowrequest.py",
+          "bytes": 4969
+        }
+      ]
+    },
+    {
+      "hash": "479feb39512931713053477895ebc1bfe7d801945d05bfee08b93ea017fb2ff4",
+      "duplicates": [
+        {
+          "path": "wg_site_setup.sh",
+          "status": "copied",
+          "source_alias": "data",
+          "origin_root": "/home/data",
+          "src_remote": "/home/data/wg_site_setup.sh",
+          "dest": "wg_site_setup.sh",
+          "bytes": 4825
+        }
+      ]
+    },
+    {
+      "hash": "a2be725e95f8ca6f1f70078ee210e5cf7bae483f638f1e97bbc944625cbe67c4",
+      "duplicates": [
+        {
+          "path": "iso/manjaro-xfce-21.3.6-220729-linux515.iso",
+          "status": "copied",
+          "source_alias": "data",
+          "origin_root": "/home/data",
+          "src_remote": "/home/data/iso/manjaro-xfce-21.3.6-220729-linux515.iso",
+          "dest": "iso/manjaro-xfce-21.3.6-220729-linux515.iso",
+          "bytes": 3529039872
+        }
+      ]
+    },
+    {
+      "hash": "49d91c3069bab6227e1a3fb94b727d69a623f2ccaf76bcdec4e86e099d587684",
+      "duplicates": [
+        {
+          "path": "ssacli.old.sh",
+          "status": "copied",
+          "source_alias": "data",
+          "origin_root": "/home/data",
+          "src_remote": "/home/data/ssacli.old.sh",
+          "dest": "ssacli.old.sh",
+          "bytes": 4277
+        }
+      ]
+    },
+    {
+      "hash": "739e417e0c826db47fc134314c5ab88aeae7fc43a15c6438c2e41c0910d7ed2f",
+      "duplicates": [
+        {
+          "path": "fake.sh",
+          "status": "copied",
+          "source_alias": "data",
+          "origin_root": "/home/data",
+          "src_remote": "/home/data/fake.sh",
+          "dest": "fake.sh",
+          "bytes": 3629
+        }
+      ]
+    },
+    {
+      "hash": "dfcd2b5507cc18fc8f45bd7542126a234f4ebb731f335d930a78fa787b05e7a8",
+      "duplicates": [
+        {
+          "path": "2024_02_21_16_07_IMG_4851.MOV",
+          "status": "copied",
+          "source_alias": "data",
+          "origin_root": "/home/data",
+          "src_remote": "/home/data/2024_02_21_16_07_IMG_4851.MOV",
+          "dest": "2024_02_21_16_07_IMG_4851.MOV",
+          "bytes": 4333624
+        }
+      ]
+    },
+    {
+      "hash": "ddbabe3b20774fe5210c41c180d873bd64ce54ba5ba5b1af4c16b9ee4f5b9d7a",
+      "duplicates": [
+        {
+          "path": "2024_02_29_11_51_IMG_5007.MOV",
+          "status": "copied",
+          "source_alias": "data",
+          "origin_root": "/home/data",
+          "src_remote": "/home/data/2024_02_29_11_51_IMG_5007.MOV",
+          "dest": "2024_02_29_11_51_IMG_5007.MOV",
+          "bytes": 8517716
+        }
+      ]
+    },
+    {
+      "hash": "a7268fdb1f79026d2f63cb6782ca4c09d05e6a1073b8f7eab4013e90dbc7fcb5",
+      "duplicates": [
+        {
+          "path": "ceph.drawio",
+          "status": "copied",
+          "source_alias": "data",
+          "origin_root": "/home/data",
+          "src_remote": "/home/data/ceph.drawio",
+          "dest": "ceph.drawio",
+          "bytes": 129923
+        }
+      ]
+    },
+    {
+      "hash": "7677c4afcc6acb2612092d0704cd406812dfde7d172d11ee0b66e689a796aa98",
+      "duplicates": [
+        {
+          "path": "rbd_manager.py",
+          "status": "copied",
+          "source_alias": "data",
+          "origin_root": "/home/data",
+          "src_remote": "/home/data/rbd_manager.py",
+          "dest": "rbd_manager.py",
+          "bytes": 16616
+        }
+      ]
+    },
+    {
+      "hash": "10f19c5b2b8d6db711582e0e27f5116296c34fe4b313ba45f9b201a5007056cb",
+      "duplicates": [
+        {
+          "path": "iso/ubuntu-22.04.1-live-server-amd64.iso",
+          "status": "copied",
+          "source_alias": "data",
+          "origin_root": "/home/data",
+          "src_remote": "/home/data/iso/ubuntu-22.04.1-live-server-amd64.iso",
+          "dest": "iso/ubuntu-22.04.1-live-server-amd64.iso",
+          "bytes": 1474873344
+        }
+      ]
+    },
+    {
+      "hash": "97645b1725ceb6326a4057a42a96d0c1391ded13b744afc0eb550b6b20db01ad",
+      "duplicates": [
+        {
+          "path": "omreport.sh",
+          "status": "copied",
+          "source_alias": "data",
+          "origin_root": "/home/data",
+          "src_remote": "/home/data/omreport.sh",
+          "dest": "omreport.sh",
+          "bytes": 3592
+        }
+      ]
+    },
+    {
+      "hash": "1050682aa2059e3fb340c942d7403acfe781eed8a2f26e037cc652875e35e6ff",
+      "duplicates": [
+        {
+          "path": "2024_02_25_19_39_IMG_5006.MOV",
+          "status": "copied",
+          "source_alias": "data",
+          "origin_root": "/home/data",
+          "src_remote": "/home/data/2024_02_25_19_39_IMG_5006.MOV",
+          "dest": "2024_02_25_19_39_IMG_5006.MOV",
+          "bytes": 24531402
+        }
+      ]
+    },
+    {
+      "hash": "4bfeef7d1263129951a3a852a1a1da555b305b1b5e34f9ce3aae60cd74518c1f",
+      "duplicates": [
+        {
+          "path": "lldpNeighbors.py",
+          "status": "copied",
+          "source_alias": "data",
+          "origin_root": "/home/data",
+          "src_remote": "/home/data/lldpNeighbors.py",
+          "dest": "lldpNeighbors.py",
+          "bytes": 8382
+        }
+      ]
+    },
+    {
+      "hash": "d7191306b55f0e422f7f0021b18419f3a41f2876a7a0b8bd5485a0e107a3b74f",
+      "duplicates": [
+        {
+          "path": "minio_benchmark.py",
+          "status": "copied",
+          "source_alias": "data",
+          "origin_root": "/home/data",
+          "src_remote": "/home/data/minio_benchmark.py",
+          "dest": "minio_benchmark.py",
+          "bytes": 4880
+        }
+      ]
+    },
+    {
+      "hash": "e44147802ce1e9a2629505d597ce761b8c01781894f38021bfb44632e4039d31",
+      "duplicates": [
+        {
+          "path": "2024_02_17_06_27_IMG_4828.MOV",
+          "status": "copied",
+          "source_alias": "data",
+          "origin_root": "/home/data",
+          "src_remote": "/home/data/2024_02_17_06_27_IMG_4828.MOV",
+          "dest": "2024_02_17_06_27_IMG_4828.MOV",
+          "bytes": 32658354
+        }
+      ]
+    },
+    {
+      "hash": "e8349771649e39dc902aa4a4f4e36245a7a552c9bbb4b58483e7b9757781d392",
+      "duplicates": [
+        {
+          "path": "2024_03_02_07_34_IMG_5265.MOV",
+          "status": "copied",
+          "source_alias": "data",
+          "origin_root": "/home/data",
+          "src_remote": "/home/data/2024_03_02_07_34_IMG_5265.MOV",
+          "dest": "2024_03_02_07_34_IMG_5265.MOV",
+          "bytes": 6135644
+        }
+      ]
+    },
+    {
+      "hash": "b7c88153aeac39e01d159a22028888f855117f63ca4f054a39ca748bdec23ff5",
+      "duplicates": [
+        {
+          "path": "ceph_bench_pool.sh",
+          "status": "copied",
+          "source_alias": "data",
+          "origin_root": "/home/data",
+          "src_remote": "/home/data/ceph_bench_pool.sh",
+          "dest": "ceph_bench_pool.sh",
+          "bytes": 1587
+        }
+      ]
+    },
+    {
+      "hash": "636e52c02227cc96a4d51d4993b6d968a85964e54c12a49917218f5de23cbbf5",
+      "duplicates": [
+        {
+          "path": "2024_03_03_18_57_IMG_5320.MOV",
+          "status": "copied",
+          "source_alias": "data",
+          "origin_root": "/home/data",
+          "src_remote": "/home/data/2024_03_03_18_57_IMG_5320.MOV",
+          "dest": "2024_03_03_18_57_IMG_5320.MOV",
+          "bytes": 5144738
+        }
+      ]
+    },
+    {
+      "hash": "524bd8f650717d02e08d0b14cf9449b45d5ce6eb349fcb119223f6a07734d4fe",
+      "duplicates": [
+        {
+          "path": "audit.py",
+          "status": "copied",
+          "source_alias": "data",
+          "origin_root": "/home/data",
+          "src_remote": "/home/data/audit.py",
+          "dest": "audit.py",
+          "bytes": 41252
+        }
+      ]
+    },
+    {
+      "hash": "8b98f2e1271514ddd6f997df838174cb74032d839dcd0ec7702cfeffaba5f6e8",
+      "duplicates": [
+        {
+          "path": "nginx/zabbix.systemd.sh",
+          "status": "copied",
+          "source_alias": "data",
+          "origin_root": "/home/data",
+          "src_remote": "/home/data/nginx/zabbix.systemd.sh",
+          "dest": "nginx/zabbix.systemd.sh",
+          "bytes": 2043
+        }
+      ]
+    },
+    {
+      "hash": "ab57be9b0eee09a025c424eebe48819048d52dd6b40bab072b10c9270c5985d5",
+      "duplicates": [
+        {
+          "path": "ceph_pg_object_summary.sh",
+          "status": "copied",
+          "source_alias": "data",
+          "origin_root": "/home/data",
+          "src_remote": "/home/data/ceph_pg_object_summary.sh",
+          "dest": "ceph_pg_object_summary.sh",
+          "bytes": 2876
+        },
+        {
+          "path": "large.sh",
+          "status": "copied",
+          "source_alias": "data",
+          "origin_root": "/home/data",
+          "src_remote": "/home/data/large.sh",
+          "dest": "large.sh",
+          "bytes": 2876
+        }
+      ]
+    },
+    {
+      "hash": "c67ee73b781138ff7cf916bd48d3bfa6254d6e2f2208aec03ec694dd678d5b9e",
+      "duplicates": [
+        {
+          "path": "2024_02_11_19_19_IMG_4346_1_Edit.mp4",
+          "status": "copied",
+          "source_alias": "data",
+          "origin_root": "/home/data",
+          "src_remote": "/home/data/2024_02_11_19_19_IMG_4346_1_Edit.mp4",
+          "dest": "2024_02_11_19_19_IMG_4346_1_Edit.mp4",
+          "bytes": 164515010
+        }
+      ]
+    },
+    {
+      "hash": "9ff1438e8aa647dbbee6449c79fb79276ccab0c6296e9ea3a58cfb6ca580e09b",
+      "duplicates": [
+        {
+          "path": "ceph_clear_data.sh",
+          "status": "copied",
+          "source_alias": "data",
+          "origin_root": "/home/data",
+          "src_remote": "/home/data/ceph_clear_data.sh",
+          "dest": "ceph_clear_data.sh",
+          "bytes": 3790
+        }
+      ]
+    },
+    {
+      "hash": "3034d3017da090db0d1ba4729372d1d7c5e47d7afdd5dbf29083825d7f134824",
+      "duplicates": [
+        {
+          "path": "bench.sh",
+          "status": "copied",
+          "source_alias": "data",
+          "origin_root": "/home/data",
+          "src_remote": "/home/data/bench.sh",
+          "dest": "bench.sh",
+          "bytes": 7090
+        }
+      ]
+    },
+    {
+      "hash": "6a3ddb949a682df7730e71aac061adbe57746465122e18d0e3c3a07966105950",
+      "duplicates": [
+        {
+          "path": "osd-reweight-down.sh",
+          "status": "copied",
+          "source_alias": "data",
+          "origin_root": "/home/data",
+          "src_remote": "/home/data/osd-reweight-down.sh",
+          "dest": "osd-reweight-down.sh",
+          "bytes": 4369
+        }
+      ]
+    },
+    {
+      "hash": "770a01ba2d97726f4895b083c20e6969ea26e9ea6b65de17c4a69db80764add8",
+      "duplicates": [
+        {
+          "path": "2024_02_19_07_24_IMG_4832.MOV",
+          "status": "copied",
+          "source_alias": "data",
+          "origin_root": "/home/data",
+          "src_remote": "/home/data/2024_02_19_07_24_IMG_4832.MOV",
+          "dest": "2024_02_19_07_24_IMG_4832.MOV",
+          "bytes": 10108343
+        }
+      ]
+    },
+    {
+      "hash": "9e6f3020d25e770cc179f87a0117f2c1500360ee54e50c46d957b1503a5709f3",
+      "duplicates": [
+        {
+          "path": "chrome32_49.0.2623.75.exe",
+          "status": "copied",
+          "source_alias": "data",
+          "origin_root": "/home/data",
+          "src_remote": "/home/data/chrome32_49.0.2623.75.exe",
+          "dest": "chrome32_49.0.2623.75.exe",
+          "bytes": 43098374
+        }
+      ]
+    },
+    {
+      "hash": "6cb40c51ddc319fcac6d2984985550536d56b3fcec26dc0aa21341a438a25f05",
+      "duplicates": [
+        {
+          "path": "getSystemInfo.py",
+          "status": "copied",
+          "source_alias": "data",
+          "origin_root": "/home/data",
+          "src_remote": "/home/data/getSystemInfo.py",
+          "dest": "getSystemInfo.py",
+          "bytes": 7224
+        }
+      ]
+    },
+    {
+      "hash": "49153a816878b930c4fec71fea6beae62b41c45dd27741ece149220d26c1f819",
+      "duplicates": [
+        {
+          "path": "cephadm_ssh_checker.py",
+          "status": "copied",
+          "source_alias": "data",
+          "origin_root": "/home/data",
+          "src_remote": "/home/data/cephadm_ssh_checker.py",
+          "dest": "cephadm_ssh_checker.py",
+          "bytes": 4422
+        }
+      ]
+    }
+  ],
+  "meta": {
+    "started_at": "2025-08-10T21:14:37.329217",
+    "source_host": "10.237.7.75",
+    "source_roots": [
+      "/home/data"
+    ],
+    "target_root": "/home/data",
+    "use_merge_subroot": false,
+    "dest_base": "/home/data",
+    "run_id": "20250810-211436",
+    "planned_files": 36,
+    "planned_bytes": 8695346556,
+    "target_fs_total_bytes": 50403627008,
+    "target_fs_used_bytes": 12934578176,
+    "target_fs_free_bytes": 34875502592,
+    "on_conflict": "version",
+    "finished_at": "2025-08-10T21:17:04.363806",
+    "copied_files": 36,
+    "copied_bytes": 8695346556,
+    "failed_files": 0,
+    "failed_bytes": 0,
+    "conflict_files": 0,
+    "conflict_bytes": 0,
+    "duration_seconds": 147.034,
+    "throughput_bytes_per_second": 59138339.132
+  },
+  "summary": {
+    "files_by_status": {
+      "copied": 36
+    },
+    "bytes_by_status": {
+      "copied": 8695346556
+    }
+  }
+}

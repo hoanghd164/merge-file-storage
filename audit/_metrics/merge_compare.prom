@@ -1,0 +1,27 @@
+# HELP merge_unique_files_total Number of unique files only available on server2 (planned).
+# TYPE merge_unique_files_total gauge
+# HELP merge_unique_bytes_total Total unique bytes available only on server2 (planned).
+# TYPE merge_unique_bytes_total gauge
+# HELP merge_files_copied_total Number of files copied successfully.
+# TYPE merge_files_copied_total counter
+# HELP merge_bytes_copied_total Total bytes copied successfully.
+# TYPE merge_bytes_copied_total counter
+# HELP merge_files_failed_total Number of failed copies.
+# TYPE merge_files_failed_total counter
+# HELP merge_bytes_failed_total Total bytes copied failed.
+#TYPE merge_bytes_failed_total counter
+# HELP merge_files_conflict_total Number of files in conflict.
+# TYPE merge_files_conflict_total counter
+# HELP merge_bytes_conflict_total Total bytes in conflict.
+# TYPE merge_bytes_conflict_total counter
+# HELP merge_last_run_timestamp_seconds End time.
+# TYPE merge_last_run_timestamp_seconds gauge
+merge_unique_files_total{source_host="10.237.7.75",target_root="/home/data",run_id="20250810-211436",source_roots="/home/data",source_aliases="data"} 36
+merge_unique_bytes_total{source_host="10.237.7.75",target_root="/home/data",run_id="20250810-211436",source_roots="/home/data",source_aliases="data"} 8695346556
+merge_files_copied_total{source_host="10.237.7.75",target_root="/home/data",run_id="20250810-211436",source_roots="/home/data",source_aliases="data"} 36
+merge_bytes_copied_total{source_host="10.237.7.75",target_root="/home/data",run_id="20250810-211436",source_roots="/home/data",source_aliases="data"} 8695346556
+merge_files_failed_total{source_host="10.237.7.75",target_root="/home/data",run_id="20250810-211436",source_roots="/home/data",source_aliases="data"} 0
+merge_bytes_failed_total{source_host="10.237.7.75",target_root="/home/data",run_id="20250810-211436",source_roots="/home/data",source_aliases="data"} 0
+merge_files_conflict_total{source_host="10.237.7.75",target_root="/home/data",run_id="20250810-211436",source_roots="/home/data",source_aliases="data"} 0
+merge_bytes_conflict_total{source_host="10.237.7.75",target_root="/home/data",run_id="20250810-211436",source_roots="/home/data",source_aliases="data"} 0
+merge_last_run_timestamp_seconds{source_host="10.237.7.75",target_root="/home/data",run_id="20250810-211436",source_roots="/home/data",source_aliases="data"} 1754835424
