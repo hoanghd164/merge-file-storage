@@ -67,17 +67,17 @@ SERVER1_ROOT = "/home/data"
 # Server2 (source)
 SERVER2_HOST = "10.237.7.75"
 SERVER2_PORT = 22
-SERVER2_USER = "cephadmin"
+SERVER2_USER = "root"
 
 # Auth: select 1 (KEY OR PASSWD)
 SERVER2_PASSWORD = None
-SERVER2_KEY_FILE = "/home/cephadmin/.ssh/id_rsa"
-SERVER2_KEY_PASSPHRASE = None
+SERVER2_KEY_FILE = "/root/.ssh/id_rsa"
+SERVER2_KEY_PASSPHRASE = 'SERVER2_KEY_PASSPHRASE'
 
 # >>>> multiple source directories on server2 <<<<
 SERVER2_ROOTS = [
     "/home/data",
-    # "/var/data2",
+    "/var/log",
 ]
 SERVER2_ROOT_ALIASES = None  # ex: ["home_data", "var_data2"]
 

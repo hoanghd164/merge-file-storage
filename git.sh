@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# """
+# git init
+# git add .
+# git commit -m "first commit"
+# git branch -M main
+# git remote add origin https://github.com/hoanghd164/demo.git
+# git push -u origin main
+# """
+
 # 🌿 Detect current working branch (main or master)
 branch=""
 if git branch --list | grep -q "main"; then
