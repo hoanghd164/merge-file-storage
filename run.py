@@ -10,7 +10,6 @@ import shutil
 import threading
 import urllib.parse
 import sqlite3
-import random
 import shlex
 import subprocess
 from collections import defaultdict, Counter
@@ -62,22 +61,28 @@ except ImportError:
 
 # ===================== CONFIGURATION =====================
 # Server1 (destination)
-SERVER1_ROOT = "/home/data"
+SERVER1_ROOT = "/home/syncdata"
+
+if not os.path.exists(SERVER1_ROOT):
+    os.makedirs(SERVER1_ROOT)
+    print(f"✅ Created {SERVER1_ROOT}")
+else:
+    print(f"⚠️ {SERVER1_ROOT} existed")
 
 # Server2 (source)
 SERVER2_HOST = "10.237.7.75"
 SERVER2_PORT = 22
-SERVER2_USER = "root"
+SERVER2_USER = "syncfile"
 
 # Auth: select 1 (KEY OR PASSWD)
 SERVER2_PASSWORD = None
-SERVER2_KEY_FILE = "/root/.ssh/id_rsa"
-SERVER2_KEY_PASSPHRASE = 'SERVER2_KEY_PASSPHRASE'
+SERVER2_KEY_FILE = "/home/syncfile/.ssh/id_rsa"
+SERVER2_KEY_PASSPHRASE = None
 
 # >>>> multiple source directories on server2 <<<<
 SERVER2_ROOTS = [
     "/home/data",
-    "/var/log",
+    # "/var/log",
 ]
 SERVER2_ROOT_ALIASES = None  # ex: ["home_data", "var_data2"]
 
@@ -100,6 +105,10 @@ PROM_METRIC_BASENAME = "merge_compare"
 # Daemon
 RUN_FOREVER = True
 SLEEP_SECONDS = 30
+
+# Debug and proxy
+DEBUG = True
+PROXY_SERVER = "http://10.237.7.250:3128"
 
 # ====== ALERT ======
 ENABLE_TELEGRAM_ALERT = True
@@ -170,12 +179,30 @@ def _hash_new(algo):
 
 def compute_hash_local(path, algo, chunk_size=HASH_CHUNK):
     h = _hash_new(algo)
-    with open(path, 'rb') as f:
-        while True:
-            data = f.read(chunk_size)
-            if not data:
-                break
-            h.update(data)
+    size = None
+    try:
+        size = os.path.getsize(path)
+    except Exception:
+        pass
+
+    f = open(path, 'rb')
+    if USE_TQDM and size:
+        from tqdm import tqdm
+        with f, tqdm(total=size, unit="B", unit_scale=True, desc=f"🔐 {os.path.basename(path)}",
+                     dynamic_ncols=True, leave=False) as bar:
+            while True:
+                data = f.read(chunk_size)
+                if not data:
+                    break
+                h.update(data)
+                bar.update(len(data))
+    else:
+        with f:
+            while True:
+                data = f.read(chunk_size)
+                if not data:
+                    break
+                h.update(data)
     return h.hexdigest()
 
 # ===================== Local scan =====================
@@ -205,7 +232,7 @@ def scan_local_metadata(root):
     return items
 
 def refresh_local_cache(root, algo):
-    """Update local metadata to DB, only hash dirty files"""
+    """Update local metadata to DB, only hash dirty files (có progress)."""
     db_init()
     now = _now()
     hashed = 0
@@ -214,7 +241,19 @@ def refresh_local_cache(root, algo):
         cur = db.cursor()
         items = scan_local_metadata(root)
 
-        for rel, size, mtime in items:
+        iterator = items
+        pbar = None
+        if USE_TQDM:
+            try:
+                from tqdm import tqdm
+                pbar = tqdm(items, desc="🔍 Hashing local (dirty files)",
+                            unit="file", dynamic_ncols=True, leave=False)
+                iterator = pbar
+            except Exception:
+                pbar = None
+                iterator = items
+
+        for rel, size, mtime in iterator:
             cur.execute("""SELECT size, mtime, hash FROM filemeta_local
                            WHERE root=? AND rel=? AND algo=?""",
                         (root, rel, algo))
@@ -222,12 +261,10 @@ def refresh_local_cache(root, algo):
             is_dirty = (row is None) or (row["size"] != size) or (row["mtime"] != mtime) or (row["hash"] is None)
 
             if is_dirty:
-                # Hash file dirty
                 full = os.path.join(root, rel)
                 try:
                     h = compute_hash_local(full, algo)
-                except Exception as e:
-                    # If hash fails, still update last_seen to avoid continuous retrying
+                except Exception:
                     h = None
                 cur.execute("""INSERT OR REPLACE INTO filemeta_local
                                (root, rel, size, mtime, algo, hash, last_seen, last_hashed)
@@ -235,11 +272,15 @@ def refresh_local_cache(root, algo):
                             (root, rel, size, mtime, algo, h, now, now if h else None))
                 hashed += 1
             else:
-                # only update last_seen
                 cur.execute("""UPDATE filemeta_local
                                SET last_seen=? WHERE root=? AND rel=? AND algo=?""",
                             (now, root, rel, algo))
+            if pbar:
+                pbar.update(0)  # giữ nhịp vẽ (không tăng số lượng)
         db.commit()
+
+        if pbar:
+            pbar.close()
     return hashed
 
 # ===================== Remote scan =====================
@@ -355,24 +396,36 @@ def _choose_remote_to_hash_budget(host, roots, algo, limit_files, limit_bytes):
 def hash_remote_batch(ssh_client, host, algo, entries):
     """
     entries: list of (root, rel, size)
-    Run b3sum/sha256sum in batch to fill hash into DB.
+    Run b3sum/sha256sum in batch to fill hash into DB. (có progress)
     """
     if not entries:
         return 0
     algo_bin = "b3sum" if algo == "blake3" else "sha256sum"
     hashed = 0
     now = _now()
+
+    # Chuẩn bị progress cho tổng số file dự kiến hash
+    pbar = None
+    total_planned = len(entries)
+    if USE_TQDM:
+        try:
+            from tqdm import tqdm
+            pbar = tqdm(total=total_planned, desc="🌐 Hashing remote (planned)",
+                        unit="file", dynamic_ncols=True, leave=False)
+        except Exception:
+            pbar = None
+
     with sqlite3.connect(CACHE_DB) as db:
         cur = db.cursor()
-        # group by root to cd each root
+
+        # group by root để cd từng root
         by_root = defaultdict(list)
         for root, rel, size in entries:
             by_root[root].append((rel, size))
 
         for root, rels in by_root.items():
             root_esc = root.replace("'", "'\\''")
-            # build file list in shell-friendly
-            # Use printf to avoid exceeding xargs limit when number is large
+            # build file list qua printf (NUL-separated)
             rels_esc = "".join(["printf '%s\\0' " + shlex.quote(r) + " ; " for r, _ in rels])
             cmd = (
                 f"cd '{root_esc}' ; "
@@ -382,7 +435,7 @@ def hash_remote_batch(ssh_client, host, algo, entries):
             if err.strip():
                 print(f"[remote-hash:{root}] {err.strip()}")
 
-            # parse line: "<hash> <path>"
+            # parse "<hash> <path>"
             for line in out.splitlines():
                 line = line.strip()
                 if not line:
@@ -390,15 +443,21 @@ def hash_remote_batch(ssh_client, host, algo, entries):
                 parts = line.split()
                 h = parts[0]
                 relp = " ".join(parts[1:]).lstrip("*").strip()
-                if relp.startswith("./"): relp = relp[2:]
+                if relp.startswith("./"):
+                    relp = relp[2:]
                 relp = relp.replace("\\", "/")
-                # update DB
+
                 cur.execute("""UPDATE filemeta_remote
                                SET hash=?, last_hashed=?
                                WHERE host=? AND root=? AND rel=? AND algo=?""",
                             (h, now, host, root, relp, algo))
                 hashed += 1
+                if pbar:
+                    pbar.update(1)
         db.commit()
+
+    if pbar:
+        pbar.close()
     return hashed
 
 # ===================== Compare & Plan =====================
@@ -670,23 +729,44 @@ def telegram_send_message_markdown(msg, botid, chatid):
         print(f"⚠️ Failed to send Telegram text: {e}")
 
 def telegram_send_with_file_and_caption(bot_token, chat_id, caption_text, file_path):
+    # Giữ nguyên hành vi cũ, chỉ ẩn output và thêm fallback gọn
     caption_md = "```\n" + str(caption_text) + "\n```"
     if len(caption_md) > 1024:
         caption_md = caption_md[:1016] + "\n```"
+
+    # Nếu không có file -> gửi text như cũ
     if not (file_path and os.path.isfile(file_path)):
         telegram_send_message_markdown(caption_text, bot_token, chat_id)
         return
+
     try:
-        subprocess.run([
-            "curl", "-s",
-            "-F", f"chat_id={chat_id}",
-            "-F", f"caption={caption_md}",
-            "-F", "parse_mode=Markdown",
-            "-F", f"document=@{file_path}",
-            f"https://api.telegram.org/bot{bot_token}/sendDocument"
-        ], check=True)
+        import subprocess
+        # Ép IPv4 (tránh sự cố IPv6), tắt stdout/stderr để không in JSON
+        cp = subprocess.run(
+            [
+                "curl",
+                "-4",                              # ép IPv4 (có thể bỏ nếu không cần)
+                "-sS",                             # silent + chỉ in lỗi (nhưng ta cũng chặn)
+                "-o", "/dev/null",                 # bỏ nội dung trả về
+                "-w", "%{http_code}",              # (bị chặn bởi DEVNULL)
+                "-x", f"{PROXY_SERVER}",   
+                "-F", f"chat_id={chat_id}",
+                "-F", f"caption={caption_md}",
+                "-F", "parse_mode=Markdown",
+                "-F", f"document=@{file_path}",
+                f"https://api.telegram.org/bot{bot_token}/sendDocument",
+            ],
+            check=False,
+            stdout=subprocess.DEVNULL,            # << chặn stdout
+            stderr=subprocess.DEVNULL,            # << chặn stderr
+        )
+        if cp.returncode == 0:
+            print("✅ Telegram sent.")
+        else:
+            print(f"⚠️ Telegram failed: curl exit {cp.returncode} — fallback to text")
+            telegram_send_message_markdown(caption_text, bot_token, chat_id)
     except Exception as e:
-        print(f"⚠️ Telegram sendDocument failed: {e}")
+        print(f"⚠️ Telegram failed: {e} — fallback to text")
         telegram_send_message_markdown(caption_text, bot_token, chat_id)
 
 def send_email_report_with_attachment(subject, body_text, attachment_path):
@@ -797,6 +877,10 @@ def connect_ssh(host, port, username, password=None, keyfile=None, key_passphras
     client.get_transport().set_keepalive(30)
     return client
 
+
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import uuid
+
 def confirm_and_merge(
     server1_root,
     ssh_client2,
@@ -811,26 +895,10 @@ def confirm_and_merge(
     auto=True
 ):
     """
-    Copy unique files from remote -> local as planned (only_in_2).
-    Support ON_CONFLICT modes: skip | overwrite | suffix | version
-    - skip : skip existing files (count conflicts, do not copy)
-    - overwrite : overwrite existing files (count as normal copy)
-    - suffix : create version by timestamp (count conflicts)
-    - version : same as 'suffix' (count conflicts)
-
-    moved_status_map[rel_path] will be dict:
-    {
-    "status": "copied" | "failed" | "failed_missing_remote" |
-    "skipped_conflict" | "copied_overwrite" | "conflict_versioned",
-    "source_alias": <alias>,
-    "origin_root": <root on remote>,
-    "src_remote": <full path on remote>,
-    "dest": <path relative to dest_base>,
-    "bytes": <number of bytes>,
-    "error": <error string if any>
-    }
+    Copy unique files từ remote -> local theo kế hoạch (only_in_2).
+    Hỗ trợ ON_CONFLICT: skip | overwrite | suffix | version.
+    Chạy sao chép đa luồng (ThreadPoolExecutor), mỗi job mở 1 SFTP riêng.
     """
-
     subroot = "merge_from_server2"
     dest_base = os.path.join(server1_root, subroot) if USE_MERGE_SUBROOT else server1_root
     logs_dir = os.path.join(server1_root, subroot if USE_MERGE_SUBROOT else "", "_logs")
@@ -838,12 +906,12 @@ def confirm_and_merge(
     ts = datetime.now().strftime("%Y%m%d-%H%M%S")
     json_log_path = os.path.join(logs_dir, f"merge_{ts}.json")
 
-    # Prepare planned for this round (only hashes in only_in_2)
+    # Planned cho vòng này
     planned = {h: hashes2[h] for h in only_in_2}
     planned_files = planned_stats["planned_files"]
     planned_bytes = planned_stats["planned_bytes"]
 
-    # Log "open loop" (no copy result yet)
+    # Log mở đầu
     fs = fs_usage_metrics(server1_root)
     meta = {
         "started_at": datetime.now().isoformat(),
@@ -880,133 +948,194 @@ def confirm_and_merge(
     failed_files = failed_bytes = 0
     conflict_files = conflict_bytes = 0
 
-    sftp2 = ssh_client2.open_sftp()
     os.makedirs(dest_base, exist_ok=True)
 
-    # Iterate over each hash and each rel_path expected to be copied
+    # Danh sách task thực sự sẽ copy
+    tasks = []
     for h, rel_list in planned.items():
         for rel_path in rel_list:
-            # rel_origin: map combined_rel -> (root, alias, orig_rel)
-            src_root, alias, orig_rel = rel_origin.get(rel_path, (None, None, rel_path))
-            src_remote = f"{src_root.rstrip('/')}/{orig_rel}"
-            dest_rel = rel_path
-            dest_local = os.path.join(dest_base, dest_rel)
-            os.makedirs(os.path.dirname(dest_local), exist_ok=True)
+            tasks.append((h, rel_path))
 
-            size = remote_rel_size.get(rel_path, 0)
+    # ---------- inner function: mỗi job mở SFTP riêng ----------
+    active = 0
+    active_lock = threading.Lock()
 
-            try:
-                # If the file already exists locally -> process according to ON_CONFLICT
-                versioned = False
-                if os.path.exists(dest_local):
-                    if ON_CONFLICT == "skip":
-                        conflict_files += 1
-                        conflict_bytes += size
-                        moved_status_map[rel_path] = {
-                            "status": "skipped_conflict",
-                            "source_alias": alias,
-                            "origin_root": src_root,
-                            "src_remote": src_remote,
-                            "dest": os.path.relpath(dest_local, dest_base),
-                            "bytes": size,
-                        }
-                        print(f"⚠️  Conflict (skip): {dest_rel}")
-                        continue
-                    elif ON_CONFLICT == "overwrite":
-                        # for overwrite – counts as normal copy
-                        pass
-                    else:
-                        # 'suffix' or 'version' -> create version name based on timestamp
-                        try:
-                            st_for_name = sftp2.stat(src_remote)
-                            ts_epoch = getattr(st_for_name, "st_mtime", None)
-                        except Exception:
-                            ts_epoch = None
-                        dest_local = conflict_suffix_path(dest_local, ts_epoch=ts_epoch)
-                        versioned = True
+    def _copy_one(rel_path: str):
+        # Thông tin thread
+        tname = threading.current_thread().name
+        tid = threading.get_ident()
 
-                # Verify existence on remote before get
-                try:
-                    sftp2.stat(src_remote)
-                except IOError as e:
-                    failed_files += 1
-                    failed_bytes += size
-                    err_msg = f"remote-missing: {e}"
-                    errors_map[rel_path] = err_msg
-                    moved_status_map[rel_path] = {
-                        "status": "failed_missing_remote",
-                        "source_alias": alias,
-                        "origin_root": src_root,
-                        "src_remote": src_remote,
-                        "dest": os.path.relpath(dest_local, dest_base),
-                        "bytes": size,
-                        "error": err_msg,
+        # Lấy mapping nguồn/đích
+        src_root, alias, orig_rel = rel_origin.get(rel_path, (None, None, rel_path))
+        src_remote = f"{src_root.rstrip('/')}/{orig_rel}"
+        dest_rel = rel_path
+        dest_local_base = os.path.join(dest_base, dest_rel)
+        size = remote_rel_size.get(rel_path, 0)
+
+        # Đánh dấu "đang chạy"
+        nonlocal active
+        if DEBUG:
+            with active_lock:
+                active += 1
+                cur = active
+            print(f"[DBG][{tname} tid={tid}] start {rel_path} (active={cur})")
+
+        sftp = ssh_client2.open_sftp()
+        try:
+            os.makedirs(os.path.dirname(dest_local_base), exist_ok=True)
+
+            # xử lý conflict
+            dest_local = dest_local_base
+            versioned = False
+            if os.path.exists(dest_local):
+                if ON_CONFLICT == "skip":
+                    if DEBUG:
+                        print(f"[DBG][{tname}] skip-conflict {rel_path}")
+                    return {
+                        "rel_path": rel_path, "status": "skipped_conflict", "alias": alias,
+                        "src_root": src_root, "src_remote": src_remote,
+                        "dest_rel": os.path.relpath(dest_local, dest_base),
+                        "bytes": size
                     }
-                    continue
-
-                # Make a copy
-                sftp2.get(src_remote, dest_local)
-
-                # Preserve times (best-effort)
-                try:
-                    st = sftp2.stat(src_remote)
-                    os.utime(dest_local, (st.st_atime, st.st_mtime))
-                except Exception:
-                    pass
-
-                # Assign status & add data
-                if versioned:
-                    conflict_files += 1
-                    conflict_bytes += size
-                    moved_status_map[rel_path] = {
-                        "status": "conflict_versioned",
-                        "source_alias": alias,
-                        "origin_root": src_root,
-                        "src_remote": src_remote,
-                        "dest": os.path.relpath(dest_local, dest_base),
-                        "bytes": size,
-                        "note": "created versioned copy due to conflict"
-                    }
+                elif ON_CONFLICT == "overwrite":
+                    if DEBUG:
+                        print(f"[DBG][{tname}] overwrite-conflict {rel_path}")
                 else:
-                    copied_files += 1
-                    copied_bytes += size
-                    status = "copied_overwrite" if os.path.exists(os.path.join(dest_base, dest_rel)) and ON_CONFLICT == "overwrite" else "copied"
-                    moved_status_map[rel_path] = {
-                        "status": status,
-                        "source_alias": alias,
-                        "origin_root": src_root,
-                        "src_remote": src_remote,
-                        "dest": os.path.relpath(dest_local, dest_base),
-                        "bytes": size,
-                    }
+                    try:
+                        st_for_name = sftp.stat(src_remote)
+                        ts_epoch = getattr(st_for_name, "st_mtime", None)
+                    except Exception:
+                        ts_epoch = None
+                    dest_local = conflict_suffix_path(dest_local, ts_epoch=ts_epoch)
+                    os.makedirs(os.path.dirname(dest_local), exist_ok=True)
+                    versioned = True
+                    if DEBUG:
+                        print(f"[DBG][{tname}] versioned -> {dest_local}")
 
-                print(f"✅ Copied: {dest_rel} -> {os.path.relpath(dest_local, dest_base)}")
+            # verify remote
+            try:
+                sftp.stat(src_remote)
+            except IOError as e:
+                if DEBUG:
+                    print(f"[DBG][{tname}] missing remote: {src_remote} ({e})")
+                return {
+                    "rel_path": rel_path, "status": "failed_missing_remote", "alias": alias,
+                    "src_root": src_root, "src_remote": src_remote,
+                    "dest_rel": os.path.relpath(dest_local, dest_base),
+                    "bytes": size, "error": f"remote-missing: {e}"
+                }
 
-            except Exception as e:
+            # copy
+            if DEBUG:
+                print(f"[DBG][{tname}] GET {src_remote} -> {dest_local}")
+            sftp.get(src_remote, dest_local)
+
+            # preserve times
+            try:
+                st = sftp.stat(src_remote)
+                os.utime(dest_local, (st.st_atime, st.st_mtime))
+            except Exception:
+                pass
+
+            if versioned:
+                return {
+                    "rel_path": rel_path, "status": "conflict_versioned", "alias": alias,
+                    "src_root": src_root, "src_remote": src_remote,
+                    "dest_rel": os.path.relpath(dest_local, dest_base),
+                    "bytes": size, "note": "created versioned copy due to conflict"
+                }
+            else:
+                status = "copied_overwrite" if (os.path.exists(dest_local_base) and ON_CONFLICT == "overwrite") else "copied"
+                return {
+                    "rel_path": rel_path, "status": status, "alias": alias,
+                    "src_root": src_root, "src_remote": src_remote,
+                    "dest_rel": os.path.relpath(dest_local, dest_base),
+                    "bytes": size
+                }
+
+        except Exception as e:
+            return {
+                "rel_path": rel_path, "status": "failed", "alias": alias,
+                "src_root": src_root, "src_remote": src_remote,
+                "dest_rel": os.path.relpath(dest_local_base, dest_base),
+                "bytes": size, "error": str(e)
+            }
+        finally:
+            try:
+                sftp.close()
+            except Exception:
+                pass
+            if DEBUG:
+                with active_lock:
+                    active -= 1
+                    cur = active
+                print(f"[DBG][{tname} tid={tid}] end   {rel_path} (active={cur})")
+        # ---------- end inner function ----------
+
+    # Progress bar
+    pbar = None
+    total_tasks = len(tasks)
+    if USE_TQDM and total_tasks > 0:
+        try:
+            from tqdm import tqdm
+            pbar = tqdm(total=total_tasks, desc="📥 Copying (parallel)",
+                        unit="file", dynamic_ncols=True, leave=False)
+        except Exception:
+            pbar = None
+
+    # Thực thi song song
+    max_workers = max(1, int(MAX_WORKERS))
+    with ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix="copy") as ex:
+        futures = [ex.submit(_copy_one, rel_path) for _, rel_path in tasks]
+
+        for fut in as_completed(futures):
+            res = fut.result()
+            rel_path = res["rel_path"]
+            status = res["status"]
+            size = res.get("bytes", 0)
+            alias = res.get("alias")
+            src_root = res.get("src_root")
+            src_remote = res.get("src_remote")
+            dest_rel = res.get("dest_rel")
+            err = res.get("error")
+            note = res.get("note")
+
+            moved_status_map[rel_path] = {
+                "status": status,
+                "source_alias": alias,
+                "origin_root": src_root,
+                "src_remote": src_remote,
+                "dest": dest_rel,
+                "bytes": size,
+                **({"error": err} if err else {}),
+                **({"note": note} if note else {}),
+            }
+
+            if status.startswith("copied"):
+                copied_files += 1
+                copied_bytes += size
+                print(f"✅ Copied: {rel_path} -> {dest_rel}")
+            elif status in ("skipped_conflict", "conflict_versioned"):
+                conflict_files += 1
+                conflict_bytes += size
+                print(f"⚠️  Conflict: {rel_path} -> {dest_rel} ({status})")
+            else:  # failed*
                 failed_files += 1
                 failed_bytes += size
-                err_msg = str(e)
-                errors_map[rel_path] = err_msg
-                moved_status_map[rel_path] = {
-                    "status": "failed",
-                    "source_alias": alias,
-                    "origin_root": src_root,
-                    "src_remote": src_remote,
-                    "dest": os.path.relpath(dest_local, dest_base),
-                    "bytes": size,
-                    "error": err_msg,
-                }
-                print(f"❌ Error while copying {dest_rel}: {e}")
+                if err:
+                    errors_map[rel_path] = err
+                print(f"❌ Error while copying {rel_path}: {err or status}")
 
-    try:
-        sftp2.close()
-    except Exception:
-        pass
+            if pbar:
+                pbar.update(1)
+
+    if pbar:
+        pbar.close()
 
     duration = round(time.time() - start_time, 3)
     throughput = round((copied_bytes / duration), 3) if duration > 0 else 0.0
 
-    # Update meta + last log
+    # Cập nhật meta & lưu log lần cuối
     meta.update({
         "finished_at": datetime.now().isoformat(),
         "copied_files": copied_files,
@@ -1029,7 +1158,7 @@ def confirm_and_merge(
         errors_map
     )
 
-    # Record cycle summary metrics
+    # Metrics Prometheus + snapshot
     _write_metrics_end(
         planned_stats,
         copied_files, copied_bytes,
@@ -1037,8 +1166,6 @@ def confirm_and_merge(
         conflict_files, conflict_bytes,
         server1_root, run_id, server2_roots, aliases
     )
-
-    # Save snapshot: set of relpaths planned in this round (helps detect changes in the next round)
     _save_snapshot(
         os.path.join(logs_dir, "_state.json"),
         set().union(*[set(hashes2[h]) for h in only_in_2]) if only_in_2 else set()
@@ -1355,4 +1482,17 @@ def main():
         print("\n👋 Stop at user request.")
 
 if __name__ == "__main__":
+    # Với chế độ daemon, giữ tqdm gọn (leave=False đã set trong từng tqdm)
+    # Nếu muốn tắt hoàn toàn khi RUN_FOREVER, bỏ comment dòng dưới:
+    # if RUN_FOREVER:
+    #     USE_TQDM = False
+
+    # Đảm bảo stdout không bị buffer khi chạy qua service
+    try:
+        import sys, os
+        os.environ.setdefault("PYTHONUNBUFFERED", "1")
+        sys.stdout.reconfigure(line_buffering=True)
+    except Exception:
+        pass
+
     main()
